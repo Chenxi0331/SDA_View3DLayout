@@ -1,0 +1,65 @@
+{
+    "id": "layout-101",
+    "name": "Photorealistic Suite",
+    "rooms": [
+        {
+            "name": "Living Room",
+            "width": 20,
+            "depth": 20,
+            "furniture": [
+                {
+                    "name": "Sofa",
+                    "type": "Seating",
+                    "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
+                    "position": {
+                        "x": -5,
+                        "y": 0,
+                        "z": 5
+                    },
+                    "scale": {
+                        "x": 3,
+                        "y": 3,
+                        "z": 3
+                    }
+                },
+                {
+                    "name": "Coffee Table",
+                    "type": "Table",
+                    "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/AntiqueCamera/glTF-Binary/AntiqueCamera.glb",
+                    "position": {
+                        "x": -5,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Bedroom",
+            "width": 15,
+            "depth": 15,
+            "furniture": [
+                {
+                    "name": "Bed",
+                    "type": "Bed",
+                    "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb",
+                    "position": {
+                        "x": 5,
+                        "y": 0,
+                        "z": -5
+                    },
+                    "scale": {
+                        "x": 2,
+                        "y": 2,
+                        "z": 2
+                    }
+                }
+            ]
+        }
+    ]
+}

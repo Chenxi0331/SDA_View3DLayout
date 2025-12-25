@@ -1,0 +1,13 @@
+{
+    "name": "prototype-server",
+    "version": "1.0.0",
+    "description": "Simple backend for 3D Prototype",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "express": "^4.18.2",
+        "cors": "^2.8.5"
+    }
+}
