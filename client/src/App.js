@@ -1,120 +1,149 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LayoutRegistry, Layout3D } from './PrototypePattern';
 import ThreeDViewer from './ThreeDViewer';
 
 function App() {
     const [registry] = useState(new LayoutRegistry());
     const [sessionLayout, setSessionLayout] = useState(null);
-    const [status, setStatus] = useState("Initializing...");
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [currentRoomId, setCurrentRoomId] = useState(null);
+    const [status, setStatus] = useState("Select a room to view 3D Layout");
+    const [error, setError] = useState(null);
 
-    // Init Master Registry ONCE via API
-    useEffect(() => {
-        const fetchLayout = async () => {
+    // Function to handle Room Selection
+    const handleRoomSelect = async (roomId, roomName) => {
+        if (currentRoomId === roomId && sessionLayout) return; // Already loaded
+
+        try {
+            setSessionLayout(null);
+            setCurrentRoomId(roomId);
+            setError(null);
+            setStatus(`Loading ${roomName}...`);
+
+            // 1. Fetch Master Layout
+            const response = await fetch(`http://localhost:5000/api/layout/${roomId}`);
+
+            // AF1: 404 Handling
+            if (response.status === 404) {
+                throw new Error("Layout not found (404)");
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (!data || Object.keys(data).length === 0) {
+                throw new Error("Layout Empty");
+            }
+
+            // 2. Hydrate Master
+            const master = Layout3D.fromJSON(data);
+
+            setStatus(`Downloading 3D Models for ${roomName}...`);
+
+            // EF1: Loading Error Handling
             try {
-                setStatus("Fetching Master Layout from Backend...");
-                const response = await fetch('http://localhost:5000/api/layout/layout-101');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-
-                // Hydrate from JSON
-                const master = Layout3D.fromJSON(data);
-
-                setStatus("Downloading 3D Models (glb)...");
                 await master.loadAssets();
+            } catch (assetErr) {
+                console.warn("Some assets failed to load", assetErr);
+                setStatus("Warning: Some furniture models failed to load.");
+            }
 
-                registry.registerMaster('layout-101', master);
-                setStatus("Master Layout 'layout-101' FETCHED, MODELS LOADED, and REGISTERED.");
-                setIsLoaded(true);
-            } catch (err) {
-                console.error("Failed to fetch layout:", err);
-                setStatus(`Error loading master: ${err.message}`);
-            } // End try
-        };
+            // 3. Register & Clone
+            registry.registerMaster(roomId, master);
+            const session = registry.getSessionClone(roomId);
 
-        fetchLayout();
-    }, [registry]);
+            setSessionLayout(session);
+            setStatus(`Showing 3D Layout for: ${roomName}`);
+
+        } catch (err) {
+            console.error("Room load error:", err);
+            setError(err.message);
+            // AF1 & EF1 UI Feedback
+            if (err.message.includes("404") || err.message.includes("Empty")) {
+                setStatus(`Status: No 3D layout available for ${roomName}.`);
+            } else {
+                setStatus("Error loading 3D layout. Please retry or contact support.");
+            }
+        }
+    };
 
     const handleCreateSession = () => {
-        try {
-            if (!isLoaded) {
-                setStatus("Cannot create session: Master not loaded yet.");
-                return;
+        // Re-clone existing master if currentRoomId is set
+        if (currentRoomId) {
+            try {
+                const session = registry.getSessionClone(currentRoomId);
+                setSessionLayout(session);
+                setStatus("Session Reset (New Clone Created).");
+            } catch (e) {
+                console.error(e);
             }
-            // PROTOTYPE PATTERN: CLONE
-            // We get a fresh deep copy.
-            const newSession = registry.getSessionClone('layout-101');
-            setSessionLayout(newSession);
-            setStatus("New Session Created. (Independent Clone)");
-        } catch (e) {
-            console.error(e);
-            setStatus("Error: " + e.message);
         }
     };
 
     const handleModifySession = () => {
         if (!sessionLayout) return;
-
-        // Modify the session entity
-        // Example: Move the first furniture in the first room
         if (sessionLayout.rooms.length > 0) {
             const room = sessionLayout.rooms[0];
             if (room.furnitureList.length > 0) {
                 const furniture = room.furnitureList[0];
-
-                // Random shift to prove movement
-                const newX = (Math.random() * 10) - 5;
-                const newZ = (Math.random() * 10) - 5;
-                furniture.setPosition(newX, 0, newZ); // Update internal position
-
-                // Force React update
+                const newX = (Math.random() * 5) - 2.5;
+                const newZ = (Math.random() * 5) - 2.5;
+                furniture.setPosition(newX, 0, newZ);
                 setSessionLayout({ ...sessionLayout, _version: Date.now() });
-
-                setStatus(`Session Modified: Moved ${furniture.name} to (${newX.toFixed(1)}, 0, ${newZ.toFixed(1)})`);
+                setStatus(`Moved ${furniture.name} to (${newX.toFixed(1)}, 0, ${newZ.toFixed(1)})`);
             }
         }
     };
 
+    // Auto-load Living Room on Mount
+    useEffect(() => {
+        handleRoomSelect('living-room', 'Living Room');
+    }, []); // Run once on mount
+
     return (
         <div style={{ padding: '20px', fontFamily: 'Arial' }}>
-            <h1>Prototype Pattern 3D Viewer</h1>
+            <h1>Realistic 3D Property Layout</h1>
 
-            <div style={{ marginBottom: '20px' }}>
-                <button
-                    onClick={handleCreateSession}
-                    disabled={!isLoaded}
-                    style={{ padding: '10px', marginRight: '10px', cursor: isLoaded ? 'pointer' : 'not-allowed' }}
-                >
-                    1. Create New Session Clone
+            {/* Controls */}
+            <div style={{ marginBottom: '10px', display: sessionLayout ? 'block' : 'none' }}>
+                <button onClick={handleCreateSession} style={{ padding: '8px', marginRight: '10px' }}>
+                    Reset Layout (Re-Clone)
                 </button>
-                <button onClick={handleModifySession} disabled={!sessionLayout} style={{ padding: '10px' }}>
-                    2. Modify Furniture Position (Session Only)
+                <button onClick={handleModifySession} style={{ padding: '8px' }}>
+                    Modify Furniture (Session)
                 </button>
             </div>
 
-            <div style={{ padding: '10px', background: '#eee', marginBottom: '20px' }}>
+            {/* Status Bar */}
+            <div style={{ padding: '10px', background: error ? '#ffe6e6' : '#e6ffe6', marginBottom: '20px', border: error ? '1px solid red' : '1px solid green', borderRadius: '4px' }}>
                 <strong>Status:</strong> {status} <br />
                 {sessionLayout && (
                     <small>Session ID: {sessionLayout.group.userData.entityId} (IsMaster: {String(sessionLayout.group.userData.isMaster)})</small>
                 )}
             </div>
 
-            <ThreeDViewer layoutData={sessionLayout} />
+            {/* Viewer */}
+            <div style={{ border: '1px solid #ccc', borderRadius: '8px', overflow: 'hidden', minHeight: '600px', background: '#f5f5f5' }}>
+                {sessionLayout ? (
+                    <ThreeDViewer layoutData={sessionLayout} />
+                ) : (
+                    <div style={{ height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '1.2em' }}>
+                        {error ? "No Layout to Display" : "Select a room above to preview 3D model"}
+                    </div>
+                )}
+            </div>
 
-            <div style={{ marginTop: '20px', color: '#666' }}>
-                <p>Instructions:</p>
-                <ol>
-                    <li>Wait for "Master Layout REGISTERED".</li>
-                    <li>Click "Create New Session Clone" to instantiate a deep copy of the Master.</li>
-                    <li>You should see boxes representing furniture (from Database).</li>
-                    <li>Click "Modify Furniture" to move the furniture randomly.</li>
-                    <li>Click "Create New Session Clone" again to revert to the original Master state.</li>
-                </ol>
+            <div style={{ marginTop: '20px', color: '#666', fontSize: '0.9em' }}>
+                <p><strong>Prototype Pattern Demo:</strong></p>
+                <ul>
+                    <li>Switching rooms fetches a "Master" layout from the server (Mock).</li>
+                    <li>The Viewer displays a "Session Clone" of that master.</li>
+                    <li>You can interact with furniture without affecting the Master.</li>
+                </ul>
             </div>
         </div>
     );
 }
-
 export default App;

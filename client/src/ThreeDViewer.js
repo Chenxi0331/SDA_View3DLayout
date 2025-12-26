@@ -34,16 +34,35 @@ const ThreeDViewer = ({ layoutData }) => {
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
+        // Limit controls to avoid going below ground
+        controls.maxPolarAngle = Math.PI / 2 - 0.1;
         controlsRef.current = controls;
 
         // --- Environment ---
-        // Floor
+        // Floor with Wood Texture
+        const textureLoader = new THREE.TextureLoader();
+        // Assuming file exists in public/wooden_table_02_4k.blend/textures/... 
+        // Note: The path structure in public seems to be a raw copy of files.
+        const woodTexture = textureLoader.load('/wooden_table_02_4k.blend/textures/wooden_table_02_diff_4k.jpg',
+            (texture) => {
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(10, 10);
+                texture.colorSpace = THREE.SRGBColorSpace;
+                console.log("Floor texture loaded");
+            },
+            undefined,
+            (err) => console.error("Error loading floor texture", err)
+        );
+
         const floorGeometry = new THREE.PlaneGeometry(100, 100);
         const floorMaterial = new THREE.MeshStandardMaterial({
-            color: 0xeeeeee,
+            map: woodTexture,
             roughness: 0.8,
-            metalness: 0.2
+            metalness: 0.1,
+            color: 0xffffff // Modify tint if needed
         });
+
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
         floor.rotation.x = -Math.PI / 2;
         floor.receiveShadow = true;
@@ -53,24 +72,26 @@ const ThreeDViewer = ({ layoutData }) => {
         scene.add(gridHelper);
 
         // --- Lighting ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); // Soft white light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // Increased Ambient
         scene.add(ambientLight);
 
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
         hemiLight.position.set(0, 20, 0);
         scene.add(hemiLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 3);
-        dirLight.position.set(10, 20, 10);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        dirLight.position.set(10, 30, 20); // Higher and angled
         dirLight.castShadow = true;
-        dirLight.shadow.mapSize.width = 2048;
-        dirLight.shadow.mapSize.height = 2048;
+        // Optimization: Reduced shadow map size for performance
+        dirLight.shadow.mapSize.width = 1024;
+        dirLight.shadow.mapSize.height = 1024;
+        dirLight.shadow.bias = -0.0001; // Reduce shadow artifacts
         dirLight.shadow.camera.near = 0.5;
-        dirLight.shadow.camera.far = 50;
-        dirLight.shadow.camera.left = -25;
-        dirLight.shadow.camera.right = 25;
-        dirLight.shadow.camera.top = 25;
-        dirLight.shadow.camera.bottom = -25;
+        dirLight.shadow.camera.far = 100;
+        dirLight.shadow.camera.left = -50;
+        dirLight.shadow.camera.right = 50;
+        dirLight.shadow.camera.top = 50;
+        dirLight.shadow.camera.bottom = -50;
         scene.add(dirLight);
 
         // --- Animation Loop ---
@@ -87,6 +108,18 @@ const ThreeDViewer = ({ layoutData }) => {
             }
             renderer.dispose();
             controls.dispose();
+
+            // Clean up scene
+            scene.traverse((object) => {
+                if (object.geometry) object.geometry.dispose();
+                if (object.material) {
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(m => m.dispose());
+                    } else {
+                        object.material.dispose();
+                    }
+                }
+            });
         };
     }, []);
 
@@ -102,7 +135,33 @@ const ThreeDViewer = ({ layoutData }) => {
             const child = scene.children[i];
             // We only remove the objects that are part of our data structure
             if (child.userData.entityId) {
+                // IMPORTANT: Dispose resources before removing from scene
+                // If the object has a dispose method (from our Pattern), usage it.
+                // Note: We need a way to link the Scene Object back to our JS Class if we want to call .dispose() on the class.
+                // However, our class `dispose` cleans up Three.js resources provided we have access to it.
+                // Since `child` here is a THREE.Group, we can traverse and clean standard things.
+
+                // Better approach: If we attached the class instance to userData, we could call it.
+                // But `PrototypePattern.js` attaches primitive data to userData.
+
+                // Fallback: Manual cleanup or if we had a reference to the previous layout object.
+                // Ideally, `ThreeDViewer` should track the `currentLayout` object to call dispose on it.
+
                 scene.remove(child);
+
+                // Generic Three.js deep clean for this subtree
+                child.traverse((node) => {
+                    if (node.isMesh) {
+                        if (node.geometry) node.geometry.dispose();
+                        if (node.material) {
+                            if (Array.isArray(node.material)) {
+                                node.material.forEach(m => m.dispose());
+                            } else {
+                                node.material.dispose();
+                            }
+                        }
+                    }
+                });
             }
         }
 
@@ -112,10 +171,18 @@ const ThreeDViewer = ({ layoutData }) => {
 
         console.log("Adding layout to scene:", layoutData);
 
-        // --- Initial Transform for loaded models ---
-        // Some models might be huge or tiny, typically we don't auto-scale here 
-        // because we want real dimensions, but for this demo check:
-        // (We rely on the data in layout.json to set scale)
+        // Update Camera View if defined
+        if (layoutData.cameraView && controlsRef.current && sceneRef.current) {
+            const { position, target } = layoutData.cameraView;
+            // Get camera from controls
+            const camera = controlsRef.current.object;
+
+            if (position) camera.position.set(position.x, position.y, position.z);
+            if (target) controlsRef.current.target.set(target.x, target.y, target.z);
+
+            controlsRef.current.update();
+            console.log("Updated camera view based on layout settings.");
+        }
 
     }, [layoutData]);
 

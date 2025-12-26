@@ -15,9 +15,6 @@ const layoutPath = path.join(__dirname, 'db', 'layout.json');
 app.get('/api/layout/:id', (req, res) => {
     const { id } = req.params;
 
-    // In a real app, we would query the DB by ID.
-    // For this prototype, we just return the file content if the ID matches what we have or just return the file.
-
     console.log(`Received request for layout: ${id}`);
 
     fs.readFile(layoutPath, 'utf8', (err, data) => {
@@ -28,9 +25,12 @@ app.get('/api/layout/:id', (req, res) => {
 
         try {
             const jsonData = JSON.parse(data);
-            // Simple validation simulation
-            if (jsonData.id === id || id === 'layout-101') {
-                res.json(jsonData);
+
+            // Look up the specific layout by ID in the dictionary
+            const layout = jsonData[id];
+
+            if (layout) {
+                res.json(layout);
             } else {
                 res.status(404).json({ error: 'Layout not found' });
             }

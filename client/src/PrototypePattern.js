@@ -12,25 +12,83 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils';
  * All entities must implement a clone() method.
  */
 
+class Wall {
+    // Static resources to be shared across all Wall instances
+    static geometry = null;
+    static material = null;
+
+    constructor(width, height, depth) {
+        this.width = width;
+        this.height = height;
+        this.depth = depth;
+
+        // Initialize shared resources if they don't exist
+        if (!Wall.geometry) {
+            // Create a unit cube that we can scale
+            Wall.geometry = new THREE.BoxGeometry(1, 1, 1);
+        }
+        if (!Wall.material) {
+            Wall.material = new THREE.MeshStandardMaterial({
+                color: 0xf5f5f5, // Off-white
+                roughness: 0.8,
+                side: THREE.DoubleSide
+            });
+        }
+
+        // Use shared geometry/material
+        this.mesh = new THREE.Mesh(Wall.geometry, Wall.material);
+        this.mesh.scale.set(width, height, depth); // Scale to dimensions
+        this.mesh.castShadow = true;
+        this.mesh.receiveShadow = true;
+        this.mesh.userData = { entityId: this.generateId(), type: 'Wall' };
+    }
+
+    generateId() {
+        return Math.random().toString(36).substr(2, 9);
+    }
+
+    setPosition(x, y, z) {
+        this.mesh.position.set(x, y, z);
+    }
+
+    clone() {
+        const clonedWall = new Wall(this.width, this.height, this.depth);
+        clonedWall.mesh.position.copy(this.mesh.position);
+        clonedWall.mesh.rotation.copy(this.mesh.rotation);
+        clonedWall.mesh.userData.entityId = this.generateId();
+        return clonedWall;
+    }
+
+    dispose() {
+        // We do NOT dispose static geometry/material here as they are shared.
+        // Only dispose if we created unique materials per instance (not the case here yet).
+    }
+}
+
 class Furniture {
+    // Shared placeholder resources
+    static placeholderGeometry = null;
+    static placeholderMaterial = null;
+
     constructor(name, type, modelUrl = null) {
         this.name = name;
         this.type = type;
         this.modelUrl = modelUrl;
 
+        // Init Shared Placeholder Resources
+        if (!Furniture.placeholderGeometry) {
+            Furniture.placeholderGeometry = new THREE.BoxGeometry(2, 2, 2);
+        }
+        if (!Furniture.placeholderMaterial) {
+            Furniture.placeholderMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 });
+        }
+
         // Default Mesh (Box) until model is loaded
-        this.mesh = new THREE.Mesh(
-            new THREE.BoxGeometry(2, 2, 2),
-            new THREE.MeshStandardMaterial({ color: 0x888888 })
-        );
+        this.mesh = new THREE.Mesh(Furniture.placeholderGeometry, Furniture.placeholderMaterial);
+        this.mesh.castShadow = true;
+        this.mesh.receiveShadow = true;
         this.mesh.userData = { entityId: this.generateId(), type: 'Furniture', name: name };
 
-        // If loaded model exists, it will replace/attach to this.mesh or be a child
-        // Better: this.mesh IS the container.
-        // We can swap the content of this.mesh or add the loaded model to it.
-        // Let's make this.mesh a Group if we expect to hold a model.
-        // But for compatibility with existing code which expects a Mesh or Object3D:
-        // Let's use a Group as the root for Furniture now.
         this.root = new THREE.Group();
         this.root.add(this.mesh); // Add placeholder initially
         this.root.userData = { entityId: this.generateId(), type: 'Furniture', name: name };
@@ -70,15 +128,46 @@ class Furniture {
                 }
             });
 
-            // Replace placeholder with real model
-            this.root.remove(this.mesh); // Remove box
-            this.root.add(model);
-            this.mesh = model; // Update reference for cloning logic if needed
+            // --- NORMALIZATION START ---
+            // Auto-Center and normalize scale to fit in a 1x1x1 box roughly, then apply this.scale.
+            // This prevents giant models from "exploding" the view.
 
-            console.log(`Loaded model for ${this.name}`);
+            const box = new THREE.Box3().setFromObject(model);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const center = new THREE.Vector3();
+            box.getCenter(center);
+
+            // Center the model geometry
+            model.position.sub(center);
+            // Important: we shift the internal model, so the parent 'root' position is still valid.
+
+            // Optional: Auto-scale if model is huge or tiny
+            // Let's normalize it so the largest dimension is approx 1 unit, 
+            // then we rely on this.root.scale to size it up to real-world meters.
+            // However, our JSON scale is roughly "meters" if the base is 1.
+            // Most GLTF models are in meters, but some are millimeters or arbitrary.
+
+            // Heuristic: If largest dim > 10, it's probably wrong scale (mm), or huge building.
+            // If < 0.1, it's probably too small.
+            // For safety in this demo, let's normalize base to max dim = 1.
+
+            const maxDim = Math.max(size.x, size.y, size.z);
+            if (maxDim > 0) {
+                const scaleFactor = 1.0 / maxDim;
+                model.scale.multiplyScalar(scaleFactor);
+            }
+
+            // --- NORMALIZATION END ---
+
+            // Replace placeholder with real model
+            this.root.remove(this.mesh);
+            this.root.add(model);
+            this.mesh = model;
+
+            console.log(`Loaded and normalized model for ${this.name}`);
         } catch (err) {
             console.error(`Failed to load model for ${this.name}`, err);
-            // Keep placeholder
         }
     }
 
@@ -101,17 +190,34 @@ class Furniture {
         const clonedFurniture = new Furniture(this.name, this.type, this.modelUrl);
 
         // Deep Clone the visual root using SkeletonUtils for GLTF support
-        // Standard .clone() loses bone connections and animations often.
         const clonedRoot = SkeletonUtils.clone(this.root);
 
         clonedFurniture.root = clonedRoot;
 
         // IMPORTANT: Update unique ID
         clonedFurniture.root.userData.entityId = this.generateId();
-        clonedFurniture.root.userData.type = 'Furniture'; // Re-assign if lost
+        clonedFurniture.root.userData.type = 'Furniture';
         clonedFurniture.root.userData.name = this.name;
 
         return clonedFurniture;
+    }
+
+    dispose() {
+        // If the mesh is NOT the shared placeholder, it's a loaded model -> dipose it
+        if (this.mesh && this.mesh !== Furniture.placeholderGeometry && this.modelUrl) {
+            this.mesh.traverse((node) => {
+                if (node.isMesh) {
+                    if (node.geometry) node.geometry.dispose();
+                    if (node.material) {
+                        if (Array.isArray(node.material)) {
+                            node.material.forEach(m => m.dispose());
+                        } else {
+                            node.material.dispose();
+                        }
+                    }
+                }
+            });
+        }
     }
 }
 
@@ -121,12 +227,50 @@ class Room {
         this.width = width;
         this.depth = depth;
         this.furnitureList = [];
+        this.walls = [];
         this.group = new THREE.Group();
         this.group.userData = { entityId: this.generateId(), type: 'Room', name: name };
+
+        // Generate Walls automatically
+        this.generateWalls();
     }
 
     generateId() {
         return Math.random().toString(36).substr(2, 9);
+    }
+
+    generateWalls() {
+        const h = 10; // Wall Height
+        const t = 0.5; // Wall Thickness
+
+        // Remove old walls if any
+        this.walls.forEach(w => this.group.remove(w.mesh));
+        this.walls = [];
+
+        // 1. Back Wall
+        const back = new Wall(this.width, h, t);
+        back.setPosition(0, h / 2, -this.depth / 2);
+        this.addWall(back);
+
+        // 2. Front Wall
+        const front = new Wall(this.width, h, t);
+        front.setPosition(0, h / 2, this.depth / 2);
+        this.addWall(front);
+
+        // 3. Left Wall
+        const left = new Wall(t, h, this.depth);
+        left.setPosition(-this.width / 2, h / 2, 0);
+        this.addWall(left);
+
+        // 4. Right Wall
+        const right = new Wall(t, h, this.depth);
+        right.setPosition(this.width / 2, h / 2, 0);
+        this.addWall(right);
+    }
+
+    addWall(wall) {
+        this.walls.push(wall);
+        this.group.add(wall.mesh);
     }
 
     addFurniture(furniture) {
@@ -154,19 +298,27 @@ class Room {
     clone() {
         const clonedRoom = new Room(this.name, this.width, this.depth);
 
-        // We don't just clone the group because we want to maintain the Furniture class structure
-        // So we clone the structure manually.
-
+        // Clone Furniture
         this.furnitureList.forEach(item => {
             const clonedItem = item.clone();
             clonedRoom.addFurniture(clonedItem);
         });
 
-        // Copy room transform if any
+        // Copy room transform
         clonedRoom.group.position.copy(this.group.position);
         clonedRoom.group.userData.entityId = this.generateId();
 
+        // Note: Walls are generated by constructor, so they are fresh and correct size. 
+        // No need to manually clone them unless we support custom wall modifications.
+
         return clonedRoom;
+    }
+
+    dispose() {
+        // Dispose walls
+        this.walls.forEach(w => w.dispose());
+        // Dispose furniture
+        this.furnitureList.forEach(f => f.dispose());
     }
 }
 
@@ -175,6 +327,7 @@ class Layout3D {
         this.id = id;
         this.description = description;
         this.rooms = [];
+        this.cameraView = null; // Default camera settings
         this.group = new THREE.Group();
         this.group.userData = { entityId: id, type: 'Layout3D', isMaster: true };
     }
@@ -202,6 +355,9 @@ class Layout3D {
 
     static fromJSON(data) {
         const layout = new Layout3D(data.id, data.name);
+        if (data.cameraView) {
+            layout.cameraView = data.cameraView;
+        }
         if (data.rooms) {
             data.rooms.forEach(roomData => {
                 const room = Room.fromJSON(roomData);
@@ -214,6 +370,11 @@ class Layout3D {
     clone() {
         const clonedLayout = new Layout3D(this.id, this.description);
 
+        // Copy camera view
+        if (this.cameraView) {
+            clonedLayout.cameraView = { ...this.cameraView };
+        }
+
         // Deep clone rooms
         this.rooms.forEach(room => {
             const clonedRoom = room.clone();
@@ -223,6 +384,10 @@ class Layout3D {
         clonedLayout.group.userData.isMaster = false;
 
         return clonedLayout;
+    }
+
+    dispose() {
+        this.rooms.forEach(r => r.dispose());
     }
 }
 
@@ -251,6 +416,7 @@ class LayoutRegistry {
 
 export {
     Furniture,
+    Wall,
     Room,
     Layout3D,
     LayoutRegistry
