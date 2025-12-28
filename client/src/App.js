@@ -64,7 +64,7 @@ function App() {
             if (err.message.includes("404") || err.message.includes("Empty")) {
                 setStatus(`Status: No 3D layout available for ${roomName}.`);
             } else {
-                setStatus("Error loading 3D layout. Please retry or contact support.");
+                setStatus("Error: Backend Server is Offline. Please run 'start-app.bat' or start the server manually.");
             }
         }
     };
