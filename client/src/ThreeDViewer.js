@@ -108,18 +108,6 @@ const ThreeDViewer = ({ layoutData }) => {
             }
             renderer.dispose();
             controls.dispose();
-
-            // Clean up scene
-            scene.traverse((object) => {
-                if (object.geometry) object.geometry.dispose();
-                if (object.material) {
-                    if (Array.isArray(object.material)) {
-                        object.material.forEach(m => m.dispose());
-                    } else {
-                        object.material.dispose();
-                    }
-                }
-            });
         };
     }, []);
 
@@ -148,20 +136,6 @@ const ThreeDViewer = ({ layoutData }) => {
                 // Ideally, `ThreeDViewer` should track the `currentLayout` object to call dispose on it.
 
                 scene.remove(child);
-
-                // Generic Three.js deep clean for this subtree
-                child.traverse((node) => {
-                    if (node.isMesh) {
-                        if (node.geometry) node.geometry.dispose();
-                        if (node.material) {
-                            if (Array.isArray(node.material)) {
-                                node.material.forEach(m => m.dispose());
-                            } else {
-                                node.material.dispose();
-                            }
-                        }
-                    }
-                });
             }
         }
 
@@ -183,6 +157,15 @@ const ThreeDViewer = ({ layoutData }) => {
             controlsRef.current.update();
             console.log("Updated camera view based on layout settings.");
         }
+
+        // Cleanup function: Called when layoutData changes or component unmounts
+        return () => {
+            // Use the Pattern's dispose logic which protects shared assets
+            if (layoutData && typeof layoutData.dispose === 'function') {
+                console.log("Disposing resources for layout:", layoutData.id);
+                layoutData.dispose();
+            }
+        };
 
     }, [layoutData]);
 

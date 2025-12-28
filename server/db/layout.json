@@ -1,10 +1,18 @@
 {
     "living-room": {
         "id": "living-room",
-        "name": "Luxury Living Room",
+        "name": "Simple Room",
         "cameraView": {
-            "position": { "x": 15, "y": 15, "z": 25 },
-            "target": { "x": 0, "y": 0, "z": 0 }
+            "position": {
+                "x": 15,
+                "y": 15,
+                "z": 25
+            },
+            "target": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            }
         },
         "rooms": [
             {
@@ -16,71 +24,196 @@
                         "name": "Velvet Sofa",
                         "type": "Seating",
                         "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
-                        "position": { "x": 0, "y": 0, "z": -5 },
-                        "scale": { "x": 4, "y": 4, "z": 4 },
-                        "rotation": { "x": 0, "y": 3.14, "z": 0 }
+                        "position": {
+                            "x": 0,
+                            "y": 0,
+                            "z": -5
+                        },
+                        "scale": {
+                            "x": 4,
+                            "y": 4,
+                            "z": 4
+                        },
+                        "rotation": {
+                            "x": 0,
+                            "y": 3.14,
+                            "z": 0
+                        }
                     },
                     {
                         "name": "Coffee Table",
                         "type": "Table",
                         "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/AntiqueCamera/glTF-Binary/AntiqueCamera.glb",
-                        "position": { "x": 0, "y": 0, "z": 0 },
-                        "scale": { "x": 3, "y": 3, "z": 3 }
+                        "position": {
+                            "x": 0,
+                            "y": 0,
+                            "z": 0
+                        },
+                        "scale": {
+                            "x": 3,
+                            "y": 3,
+                            "z": 3
+                        }
                     }
                 ]
             }
         ]
     },
-    "bedroom": {
-        "id": "bedroom",
-        "name": "Cozy Bedroom",
+    "deluxe-room": {
+        "id": "deluxe-room",
+        "name": "Deluxe Room",
         "cameraView": {
-            "position": { "x": 10, "y": 12, "z": 20 },
-            "target": { "x": 0, "y": 0, "z": -5 }
+            "position": {
+                "x": 0,
+                "y": 25,
+                "z": 25
+            },
+            "target": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            }
         },
         "rooms": [
             {
-                "name": "Master Bedroom",
-                "width": 20,
-                "depth": 20,
+                "name": "Banquet Hall",
+                "width": 30,
+                "depth": 30,
                 "furniture": [
                     {
-                        "name": "King Bed",
-                        "type": "Bed",
-                        "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb",
-                        "position": { "x": 0, "y": 0, "z": -5 },
-                        "scale": { "x": 4, "y": 4, "z": 4 },
-                        "rotation": { "x": 0, "y": 3.14, "z": 0 }
-                    },
-                    {
-                        "name": "Side Table",
+                        "name": "Grand Dining Table",
                         "type": "Table",
                         "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb",
-                        "position": { "x": -6, "y": 1, "z": -5 }
-                    }
-                ]
-            }
-        ]
-    },
-    "dining-room": {
-        "id": "dining-room",
-        "name": "Modern Dining Room",
-        "cameraView": {
-            "position": { "x": 0, "y": 20, "z": 20 },
-            "target": { "x": 0, "y": 0, "z": 0 }
-        },
-        "rooms": [
-            {
-                "name": "Dining Area",
-                "width": 22,
-                "depth": 22,
-                "furniture": [
+                        "position": {
+                            "x": 0,
+                            "y": 2,
+                            "z": 0
+                        },
+                        "scale": {
+                            "x": 18,
+                            "y": 1,
+                            "z": 8
+                        }
+                    },
                     {
-                        "name": "Dining Table",
-                        "type": "Table",
-                        "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Corset/glTF-Binary/Corset.glb",
-                        "position": { "x": 0, "y": 0, "z": 0 },
-                        "scale": { "x": 20, "y": 20, "z": 20 }
+                        "name": "Chair 1",
+                        "type": "Seating",
+                        "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
+                        "position": {
+                            "x": -5,
+                            "y": 0,
+                            "z": 4
+                        },
+                        "scale": {
+                            "x": 3,
+                            "y": 3,
+                            "z": 3
+                        },
+                        "rotation": {
+                            "x": 0,
+                            "y": 0,
+                            "z": 0
+                        }
+                    },
+                    {
+                        "name": "Chair 2",
+                        "type": "Seating",
+                        "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
+                        "position": {
+                            "x": 0,
+                            "y": 0,
+                            "z": 4
+                        },
+                        "scale": {
+                            "x": 3,
+                            "y": 3,
+                            "z": 3
+                        },
+                        "rotation": {
+                            "x": 0,
+                            "y": 0,
+                            "z": 0
+                        }
+                    },
+                    {
+                        "name": "Chair 3",
+                        "type": "Seating",
+                        "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
+                        "position": {
+                            "x": 5,
+                            "y": 0,
+                            "z": 4
+                        },
+                        "scale": {
+                            "x": 3,
+                            "y": 3,
+                            "z": 3
+                        },
+                        "rotation": {
+                            "x": 0,
+                            "y": 0,
+                            "z": 0
+                        }
+                    },
+                    {
+                        "name": "Chair 4",
+                        "type": "Seating",
+                        "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
+                        "position": {
+                            "x": -5,
+                            "y": 0,
+                            "z": -4
+                        },
+                        "scale": {
+                            "x": 3,
+                            "y": 3,
+                            "z": 3
+                        },
+                        "rotation": {
+                            "x": 0,
+                            "y": 3.14,
+                            "z": 0
+                        }
+                    },
+                    {
+                        "name": "Chair 5",
+                        "type": "Seating",
+                        "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
+                        "position": {
+                            "x": 0,
+                            "y": 0,
+                            "z": -4
+                        },
+                        "scale": {
+                            "x": 3,
+                            "y": 3,
+                            "z": 3
+                        },
+                        "rotation": {
+                            "x": 0,
+                            "y": 3.14,
+                            "z": 0
+                        }
+                    },
+                    {
+                        "name": "Chair 6",
+                        "type": "Seating",
+                        "modelUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
+                        "position": {
+                            "x": 5,
+                            "y": 0,
+                            "z": -4
+                        },
+                        "scale": {
+                            "x": 3,
+                            "y": 3,
+                            "z": 3
+                        },
+                        "rotation": {
+                            "x": 0,
+                            "y": 3.14,
+                            "z": 0
+                        }
                     }
                 ]
             }

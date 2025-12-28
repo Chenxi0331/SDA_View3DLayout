@@ -106,6 +106,22 @@ function App() {
         <div style={{ padding: '20px', fontFamily: 'Arial' }}>
             <h1>Realistic 3D Property Layout</h1>
 
+            {/* Room Selection Tabs */}
+            <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+                <button
+                    onClick={() => handleRoomSelect('living-room', 'Simple Room')}
+                    style={{ padding: '10px 20px', fontWeight: 'bold', background: currentRoomId === 'living-room' ? '#ddd' : '#f9f9f9', cursor: 'pointer' }}
+                >
+                    Simple Room
+                </button>
+                <button
+                    onClick={() => handleRoomSelect('deluxe-room', 'Deluxe Room')}
+                    style={{ padding: '10px 20px', fontWeight: 'bold', background: currentRoomId === 'deluxe-room' ? '#ddd' : '#f9f9f9', cursor: 'pointer' }}
+                >
+                    Deluxe Room
+                </button>
+            </div>
+
             {/* Controls */}
             <div style={{ marginBottom: '10px', display: sessionLayout ? 'block' : 'none' }}>
                 <button onClick={handleCreateSession} style={{ padding: '8px', marginRight: '10px' }}>
