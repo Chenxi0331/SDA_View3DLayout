@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './index.css';
 import { LayoutRegistry, Layout3D } from './PrototypePattern';
 import ThreeDViewer from './ThreeDViewer';
 
@@ -103,61 +104,66 @@ function App() {
     }, []); // Run once on mount
 
     return (
-        <div style={{ padding: '20px', fontFamily: 'Arial' }}>
-            <h1>Realistic 3D Property Layout</h1>
+        <div id="app">
+            <div className="ui-overlay">
+                <h1>Property Layout 3D</h1>
 
-            {/* Room Selection Tabs */}
-            <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
-                <button
-                    onClick={() => handleRoomSelect('living-room', 'Simple Room')}
-                    style={{ padding: '10px 20px', fontWeight: 'bold', background: currentRoomId === 'living-room' ? '#ddd' : '#f9f9f9', cursor: 'pointer' }}
-                >
-                    Simple Room
-                </button>
-                <button
-                    onClick={() => handleRoomSelect('deluxe-room', 'Deluxe Room')}
-                    style={{ padding: '10px 20px', fontWeight: 'bold', background: currentRoomId === 'deluxe-room' ? '#ddd' : '#f9f9f9', cursor: 'pointer' }}
-                >
-                    Deluxe Room
-                </button>
+                <div className="controls">
+                    <div className="button-group">
+                        <button
+                            className={currentRoomId === 'living-room' ? 'active' : ''}
+                            onClick={() => handleRoomSelect('living-room', 'Simple Room')}
+                        >
+                            Simple
+                        </button>
+                        <button
+                            className={currentRoomId === 'deluxe-room' ? 'active' : ''}
+                            onClick={() => handleRoomSelect('deluxe-room', 'Deluxe Room')}
+                        >
+                            Deluxe
+                        </button>
+                    </div>
+
+                    {sessionLayout && (
+                        <div className="controls" style={{ marginTop: '10px' }}>
+                            <button className="secondary" onClick={handleCreateSession}>
+                                Reset Session
+                            </button>
+                            <button className="secondary" onClick={handleModifySession}>
+                                Move Furniture
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                <div className="status-bar">
+                    <div style={{ color: error ? '#ff6b6b' : '#00d2ff' }}>
+                        {status}
+                    </div>
+                    {sessionLayout && (
+                        <div style={{ fontSize: '0.7em', marginTop: '5px', opacity: 0.7 }}>
+                            ID: {sessionLayout.group.userData.entityId} <br />
+                            (IsMaster: {String(sessionLayout.group.userData.isMaster)})
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {/* Controls */}
-            <div style={{ marginBottom: '10px', display: sessionLayout ? 'block' : 'none' }}>
-                <button onClick={handleCreateSession} style={{ padding: '8px', marginRight: '10px' }}>
-                    Reset Layout (Re-Clone)
-                </button>
-                <button onClick={handleModifySession} style={{ padding: '8px' }}>
-                    Modify Furniture (Session)
-                </button>
-            </div>
-
-            {/* Status Bar */}
-            <div style={{ padding: '10px', background: error ? '#ffe6e6' : '#e6ffe6', marginBottom: '20px', border: error ? '1px solid red' : '1px solid green', borderRadius: '4px' }}>
-                <strong>Status:</strong> {status} <br />
-                {sessionLayout && (
-                    <small>Session ID: {sessionLayout.group.userData.entityId} (IsMaster: {String(sessionLayout.group.userData.isMaster)})</small>
-                )}
-            </div>
-
-            {/* Viewer */}
-            <div style={{ border: '1px solid #ccc', borderRadius: '8px', overflow: 'hidden', minHeight: '600px', background: '#f5f5f5' }}>
+            <div className="viewer-container">
                 {sessionLayout ? (
                     <ThreeDViewer layoutData={sessionLayout} />
                 ) : (
-                    <div style={{ height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '1.2em' }}>
-                        {error ? "No Layout to Display" : "Select a room above to preview 3D model"}
+                    <div style={{
+                        height: '100vh',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#666',
+                        background: '#1a1a1a'
+                    }}>
+                        {error ? "Error Loading Layout" : "Select a Room"}
                     </div>
                 )}
-            </div>
-
-            <div style={{ marginTop: '20px', color: '#666', fontSize: '0.9em' }}>
-                <p><strong>Prototype Pattern Demo:</strong></p>
-                <ul>
-                    <li>Switching rooms fetches a "Master" layout from the server (Mock).</li>
-                    <li>The Viewer displays a "Session Clone" of that master.</li>
-                    <li>You can interact with furniture without affecting the Master.</li>
-                </ul>
             </div>
         </div>
     );
