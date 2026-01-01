@@ -240,7 +240,7 @@ class Room {
     }
 
     generateWalls() {
-        const h = 10; // Wall Height
+        const h = 3.5; // Wall Height (Increased slightly from 2.5 as requested)
         const t = 0.5; // Wall Thickness
 
         // Remove old walls if any

@@ -109,41 +109,49 @@ function App() {
                 <h1>Property Layout 3D</h1>
 
                 <div className="controls">
-                    <div className="button-group">
-                        <button
-                            className={currentRoomId === 'living-room' ? 'active' : ''}
-                            onClick={() => handleRoomSelect('living-room', 'Simple Room')}
-                        >
-                            Simple
-                        </button>
-                        <button
-                            className={currentRoomId === 'deluxe-room' ? 'active' : ''}
-                            onClick={() => handleRoomSelect('deluxe-room', 'Deluxe Room')}
-                        >
-                            Deluxe
-                        </button>
+                    <div>
+                        <div className="section-label">Select Room</div>
+                        <div className="button-group">
+                            <button
+                                className={currentRoomId === 'living-room' ? 'active' : ''}
+                                onClick={() => handleRoomSelect('living-room', 'Simple Room')}
+                            >
+                                <span>Simple Room</span>
+                                {currentRoomId === 'living-room' && <span>●</span>}
+                            </button>
+                            <button
+                                className={currentRoomId === 'deluxe-room' ? 'active' : ''}
+                                onClick={() => handleRoomSelect('deluxe-room', 'Deluxe Room')}
+                            >
+                                <span>Deluxe Room</span>
+                                {currentRoomId === 'deluxe-room' && <span>●</span>}
+                            </button>
+                        </div>
                     </div>
 
                     {sessionLayout && (
-                        <div className="controls" style={{ marginTop: '10px' }}>
-                            <button className="secondary" onClick={handleCreateSession}>
-                                Reset Session
-                            </button>
-                            <button className="secondary" onClick={handleModifySession}>
-                                Move Furniture
-                            </button>
+                        <div style={{ marginTop: '20px' }}>
+                            <div className="section-label">Actions</div>
+                            <div className="button-group">
+                                <button className="secondary" onClick={handleCreateSession}>
+                                    ⟳ Reset Session
+                                </button>
+                                <button className="secondary" onClick={handleModifySession}>
+                                    ✥ Move Furniture
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
 
                 <div className="status-bar">
-                    <div style={{ color: error ? '#ff6b6b' : '#00d2ff' }}>
+                    <div style={{ color: error ? '#ff6b6b' : '#00d2ff', marginBottom: '5px' }}>
                         {status}
                     </div>
                     {sessionLayout && (
-                        <div style={{ fontSize: '0.7em', marginTop: '5px', opacity: 0.7 }}>
-                            ID: {sessionLayout.group.userData.entityId} <br />
-                            (IsMaster: {String(sessionLayout.group.userData.isMaster)})
+                        <div style={{ fontSize: '0.7em', opacity: 0.5 }}>
+                            UUID: {sessionLayout.group.userData.entityId} <br />
+                            Type: {sessionLayout.group.userData.isMaster ? 'MASTER' : 'SESSION'}
                         </div>
                     )}
                 </div>
@@ -159,9 +167,13 @@ function App() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: '#666',
-                        background: '#1a1a1a'
+                        background: '#1a1a1a',
+                        flexDirection: 'column',
+                        textAlign: 'center',
+                        padding: '20px'
                     }}>
-                        {error ? "Error Loading Layout" : "Select a Room"}
+                        <h2>{error ? "Error Loading Layout" : "Select a Room"}</h2>
+                        {error && <p style={{ color: '#ff6b6b', marginTop: '10px' }}>{error}</p>}
                     </div>
                 )}
             </div>

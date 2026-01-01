@@ -14,82 +14,112 @@ body {
 }
 
 /* Glassmorphic Overlay */
+/* Sidebar System Layout */
 .ui-overlay {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background: rgba(40, 40, 40, 0.8);
-  backdrop-filter: blur(10px);
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  background: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(15px);
+  padding: 30px 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
   z-index: 100;
-  width: 300px;
+  display: flex;
+  flex-direction: column;
 }
 
 h1 {
-  font-size: 1.2rem;
-  margin: 0 0 20px 0;
+  font-size: 1.4rem;
+  margin: 0 0 30px 0;
   color: #00d2ff;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  font-weight: 800;
+  border-bottom: 1px solid rgba(0, 210, 255, 0.3);
+  padding-bottom: 15px;
 }
 
 .controls {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
+  flex: 1; /* Pushes status bar down */
+}
+
+/* Section Headers within Sidebar */
+.section-label {
+    font-size: 0.75rem;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
 }
 
 .button-group {
     display: flex;
+    flex-direction: column; /* Stack buttons vertically for sidebar */
     gap: 10px;
 }
 
 button {
-  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ccc;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 20px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
+  background: rgba(0, 210, 255, 0.1);
+  border-color: rgba(0, 210, 255, 0.3);
+  color: #fff;
+  transform: translateX(5px); /* Slide effect */
 }
 
 button.active {
-    background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
-    color: #1a1a1a;
+    background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
 }
 
 /* Secondary Action Buttons */
 button.secondary {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    font-size: 0.8rem;
-    padding: 8px;
+    font-size: 0.85rem;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
 }
 
 button.secondary:hover {
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #fff;
+    transform: none;
 }
 
 .status-bar {
-  margin-top: 15px;
+  margin-top: auto; /* Push to bottom */
   font-size: 0.8rem;
-  color: #aaa;
+  color: #888;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 10px;
+  padding-top: 20px;
 }
 
+/* Main Content Area */
 .viewer-container {
-  width: 100%;
-  height: 100%;
+  margin-left: 320px; /* Sidebar width + padding */
+  width: calc(100% - 320px);
+  height: 100vh;
+  position: relative;
 }

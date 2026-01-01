@@ -14,18 +14,19 @@ const ThreeDViewer = ({ layoutData }) => {
         const height = mountRef.current.clientHeight;
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf0f0f0); // Soft grey background
-        // scene.fog = new THREE.Fog(0xf0f0f0, 20, 100); 
+        scene.background = new THREE.Color(0x1a1a1a); // Dark background
+        // scene.fog = new THREE.Fog(0x1a1a1a, 20, 100); 
         sceneRef.current = scene;
 
         const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
         camera.position.set(0, 20, 30);
         camera.lookAt(0, 0, 0);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" }); // Disable antialias for perf
+        renderer.setPixelRatio(1); // Force 1x pixel ratio for low-spec
         renderer.setSize(width, height);
-        renderer.shadowMap.enabled = true; // Enable Shadows
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.BasicShadowMap; // Faster shadows
         renderer.outputColorSpace = THREE.SRGBColorSpace; // Correct colors
         mountRef.current.appendChild(renderer.domElement);
         rendererRef.current = renderer;
@@ -39,28 +40,13 @@ const ThreeDViewer = ({ layoutData }) => {
         controlsRef.current = controls;
 
         // --- Environment ---
-        // Floor with Wood Texture
-        const textureLoader = new THREE.TextureLoader();
-        // Assuming file exists in public/wooden_table_02_4k.blend/textures/... 
-        // Note: The path structure in public seems to be a raw copy of files.
-        const woodTexture = textureLoader.load('/wooden_table_02_4k.blend/textures/wooden_table_02_diff_4k.jpg',
-            (texture) => {
-                texture.wrapS = THREE.RepeatWrapping;
-                texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set(10, 10);
-                texture.colorSpace = THREE.SRGBColorSpace;
-                console.log("Floor texture loaded");
-            },
-            undefined,
-            (err) => console.error("Error loading floor texture", err)
-        );
+        // Optimization: Removed 4K texture loading. Using simple grid/color for low-spec compatibility.
 
         const floorGeometry = new THREE.PlaneGeometry(100, 100);
         const floorMaterial = new THREE.MeshStandardMaterial({
-            map: woodTexture,
+            color: 0x2a2a2a, // Dark Floor
             roughness: 0.8,
-            metalness: 0.1,
-            color: 0xffffff // Modify tint if needed
+            metalness: 0.1
         });
 
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
@@ -68,7 +54,7 @@ const ThreeDViewer = ({ layoutData }) => {
         floor.receiveShadow = true;
         scene.add(floor);
 
-        const gridHelper = new THREE.GridHelper(100, 50, 0xcccccc, 0xeeeeee);
+        const gridHelper = new THREE.GridHelper(100, 50, 0x444444, 0x222222); // Dark Grid helper
         scene.add(gridHelper);
 
         // --- Lighting ---
@@ -83,9 +69,9 @@ const ThreeDViewer = ({ layoutData }) => {
         dirLight.position.set(10, 30, 20); // Higher and angled
         dirLight.castShadow = true;
         // Optimization: Reduced shadow map size for performance
-        dirLight.shadow.mapSize.width = 1024;
-        dirLight.shadow.mapSize.height = 1024;
-        dirLight.shadow.bias = -0.0001; // Reduce shadow artifacts
+        dirLight.shadow.mapSize.width = 512;
+        dirLight.shadow.mapSize.height = 512;
+        dirLight.shadow.bias = -0.001; // Reduce shadow artifacts
         dirLight.shadow.camera.near = 0.5;
         dirLight.shadow.camera.far = 100;
         dirLight.shadow.camera.left = -50;
